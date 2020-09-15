@@ -1,0 +1,446 @@
+#include <iostream>
+#include "graphics.h"
+#include <ctime>
+#include <cstdlib>
+#include <stdio.h>
+#include <fstream>
+#include <Windows.h>
+
+using namespace std;
+
+struct Node
+{
+	char data;
+	Node * next, * prev;
+};
+
+void addtolist(Node * &head, Node * &tail, char ch)
+{
+    if (head==NULL)
+    {
+        head=tail=new Node;
+        head->data=ch;
+        head->next=NULL;
+    }
+    else
+    {
+        Node * temp=new Node; 
+        temp->data=ch; 
+        temp->next=NULL; 
+        tail->next=temp; 
+        tail=temp;
+    }
+}
+
+void removefromlist(Node * &head, Node * &tail)
+{
+	if (head==NULL)
+	{
+		head=NULL;
+	}
+	else if (head==tail)
+	{
+		delete tail;
+		tail=head=NULL;
+	}
+	else
+	{
+		Node * temp = head;
+		head=head->next;
+		delete temp;
+	}
+}
+
+void addanywhere (Node * &head, Node * &tail, char ch[])
+{
+    if(head==NULL)
+    {
+		for (int i=0;i!='\0';i++)
+        {
+			head=tail=new Node;
+			head->data=ch[i];
+			head->next=NULL;
+		}
+    }
+    Node * curr=head;
+    Node * prev=NULL;
+	int i=0;
+    while (curr!=NULL && ch[i]!='\0')
+    {
+        prev=curr;
+        curr=curr->next;
+        if (curr==head)
+        {
+            Node * temp=new Node;
+            temp->data=ch[i];
+            temp->next=curr;
+            head=temp;
+        }
+        else if (curr==NULL)
+        {
+            Node * temp=new Node;
+            temp->data=ch[i];
+            temp->next=NULL;
+            tail->next=temp;
+            tail=temp;
+            tail->next=NULL;
+        }
+        else
+        {
+            Node * temp=new Node;
+            temp->data=ch[i];
+            temp->next=curr;
+            prev->next=temp;
+        }
+		i++;
+    }
+}
+
+void FindAndReplace(char * find, char * replace, char * ch);
+void CopyAndPaste(char * ch, Node * head, Node * tail);
+void NextLine(Node * head, Node * tail,char * ch);
+
+bool isCursorKeyPressed(int& whickKey)   //whichKey passed as reference.... 
+{
+	char key;
+	key = GetAsyncKeyState(37);
+	if (key == 1)
+	{
+		whickKey = 1;		// 1 if left key is pressed 
+		return true;
+	}
+	key = GetAsyncKeyState(39);
+	if (key == 1)
+	{
+		whickKey = 3; // 3 if right key is pressed
+		return true;
+	}
+	key = GetAsyncKeyState(VK_RETURN);
+	if (key == 1)
+	{
+		whickKey = 3; // Ctrl+C is pressed
+		return true;
+	}
+	key = GetAsyncKeyState(VK_RETURN);
+	if (key == 1)
+	{
+		whickKey = 18; // Ctrl+R is pressed
+		return true;
+	}
+	return false;
+}
+
+void printrectangle (Node * head, Node * tail, char * ch)
+{
+	int color;
+	color=getcolor();
+	setcolor(WHITE);
+	rectangle(15,15,985,985);
+	outtextxy(30,30,"                                                                                                    Text Editor                             ");
+	NextLine(head,tail,ch);
+}
+
+void FindAndReplace(char * find, char * replace, char * ch)
+{
+	for (int i=0;i!='\0';i++)
+	{
+		if (ch[0] == find[i])
+		{
+			ch[0]=replace[i];
+		}
+	}
+}
+
+void CopyAndPaste(char * ch, Node * head, Node * tail)
+{
+	int size=0;
+	for (int i=0;i!='\0';i++)
+	{
+		if (ch[i] != '\0');
+			size++;
+	}
+	char * temp;
+	temp= new char[size];
+	for (int i=0;i<size;i++)
+	{
+		ch[i]=temp[i];
+		addanywhere(head,tail,ch);
+	}
+}
+
+void NextLine(Node * head, Node * tail,char ch[])
+{
+	char find[]={'\0','\0'};
+	char replace[]={'\0','\0'};
+	char buff[100];
+	ifstream fin("help.txt");
+	ofstream fout("help.txt");
+	int x=20,y=50,whichKey;
+	setcolor(WHITE);
+	while (true)
+	{
+		outtextxy(x,y,"_");
+		ch[0]=getch();
+		if ((ch[0] >= 'a' && ch[0] <= 'z') || (ch[0] >= 'A'&& ch[0] <= 'Z') || ch[0] == ' ' )
+		{
+			addtolist(head,tail,ch[0]);
+			if (ch[0] == 'f' || ch[0] == 'i' || ch[0] == 'l' || ch[0] == 'r' || ch[0] == 't' || ch[0] == 's' || ch[0] == 'I' || ch[0] == 'j' || ch[0] == 'J')
+			{
+				setcolor(WHITE);
+				outtextxy(x,y,ch);
+				x=x+10;
+				outtextxy(x+1,y,"_");
+				setcolor(BLACK);
+				outtextxy(x-4,y,"___");
+				setcolor(WHITE);
+			}
+			else if (ch[0] == 'm' || ch[0] == 'w' )
+			{
+				setcolor(WHITE);
+				outtextxy(x-2,y,ch);
+				x=x+10;
+				outtextxy(x,y,"_");
+				setcolor(BLACK);
+				outtextxy(x-2,y,"___");
+				setcolor(WHITE);
+			}
+			else if (ch[0] == ' ')
+			{
+				setcolor(WHITE);
+				outtextxy(x,y,ch);
+				x=x+10;
+				outtextxy(x,y,"_");
+				setcolor(BLACK);
+				outtextxy(x-4,y,"___");
+				setcolor(WHITE);
+			}
+			else
+			{
+				setcolor(WHITE);
+				outtextxy(x,y,ch);
+				x=x+10;
+				outtextxy(x,y,"_");
+				setcolor(BLACK);
+				outtextxy(x,y,"_");
+				setcolor(WHITE);
+			}
+		}
+		else if ((ch[0] >= '!' && ch[0] <= '@') || (ch[0] >= '[' && ch[0] <= '_') || (ch[0] >= '{' && ch[0] <= '}'))
+		{
+			setcolor(WHITE);
+			addtolist(head,tail,ch[0]);
+			outtextxy(x,y,ch);
+			x=x+10;
+			outtextxy(x,y,"_");
+			setcolor(BLACK);
+			outtextxy(x-3,y,"___");
+			setcolor(WHITE);
+		}
+		else if (ch[0] == 8)
+		{
+			removefromlist(head,tail);
+			x=x-10;
+			setcolor(WHITE);
+			outtextxy(x,y,"_");
+			setcolor(BLACK);
+			outtextxy(x+10,y,"_");
+			setcolor(WHITE);
+			Sleep(500);
+		}
+		else if (ch[0]==13)
+		{
+			y=y+15;
+			x=20;
+		}
+		else if (ch[0] == 12) // Ctrl+L is pressed
+		{
+			ifstream fin("help.txt");
+			if (fin.is_open())
+			{
+				fin.getline(buff,100);
+			}
+			else
+				outtext("Not open");
+		}
+		else if (ch[0] == 19) // Ctrl+S is pressed
+		{
+			ofstream fout("help.txt");
+			for (int i=0;i!='\0';i++)
+			{
+				fout<<buff[i];
+			}
+		}
+		else if (ch[0] == 18)
+		{
+			x=20;
+			outtextxy(x,y+15,"What do you want to find? ");
+			find[0]=getch();
+			addtolist(head,tail,find[0]);
+			outtextxy(x,y+30,find);
+			outtextxy(x,y+45,"What do you want to replace? ");
+			replace[0]=getch();
+			addtolist(head,tail,replace[0]);
+			outtextxy(x,y+60,replace);
+			FindAndReplace(find,replace,ch);
+			outtextxy(x,y+75,ch);
+		}
+		else if (ch[0] == 3)
+		{
+			x=20;
+			char copy[]={'\0','\0'};
+			outtextxy(x,y+15,"What do you want to copy? ");
+			ch[0]=getch();
+			addtolist(head,tail,copy[0]);
+			outtextxy(x,y+30,copy);
+			CopyAndPaste(ch,head,tail);
+			outtextxy(x,y+45,ch);
+		}
+		if (isCursorKeyPressed(whichKey)==true)
+		{
+				if (whichKey == 1)
+				{
+					x=x-10;
+					setcolor(WHITE);
+					outtextxy(x,y,"_");
+					setcolor(BLACK);
+					outtextxy(x+10,y,"_");
+					setcolor(WHITE);
+					Sleep(500);
+				}
+				if (whichKey == 3)
+				{
+					setcolor(WHITE);
+					x=x+10;
+					outtextxy(x,y,"_");
+					setcolor(BLACK);
+					outtextxy(x-10,y,"_");
+					setcolor(WHITE);
+					Sleep(500);
+				}	
+			}
+		}
+}
+
+int main()  
+{
+	 int whichKey;
+	 char * find, * replace;
+	 char buff[100];
+	 ifstream fin("help.txt");
+	 ofstream fout("help.txt");
+	 Node * head=nullptr;
+     Node * tail=nullptr;
+	 initwindow(1000,1000, " Text Editor ");
+	 setcolor(WHITE);
+	 char ch[]={'\0','\0'};
+	 printrectangle(head,tail,ch);
+	 int x=20, y=50,xcount=30,y2=50;
+	 while (true)  
+	 {
+		outtextxy(x,y,"_");
+		ch[0]=getch();
+		if ((ch[0] >= 'a' || ch[0] <= 'z') || (ch[0] >= 'A'|| ch[0] <= 'Z') || ch[0] == ' ' )
+		{
+			setcolor(WHITE);
+			addtolist(head,tail,ch[0]);
+			outtextxy(x,y,ch);
+			x=x+10;
+			outtextxy(x,y,"_");
+			setcolor(BLACK);
+			outtextxy(x-4,y,"___");
+			setcolor(WHITE);
+		}
+		else if ((ch[0] >= '!' || ch[0] <= '@') || (ch[0] >= '[' || ch[0] <= '_') || (ch[0] >= '{' || ch[0] <= '}'))
+		{
+			setcolor(WHITE);
+			addtolist(head,tail,ch[0]);
+			outtextxy(x,y,ch);
+			x=x+10;
+			outtextxy(x,y,"_");
+			setcolor(BLACK);
+			outtextxy(x-4,y,"___");
+			setcolor(WHITE);
+		}
+		else if (ch[0] == 8)
+		{
+			removefromlist(head,tail);
+			x=x-10;
+			setcolor(WHITE);
+			outtextxy(x,y,"_");
+			setcolor(BLACK);
+			outtextxy(x+10,y,"_");
+			setcolor(WHITE);
+			Sleep(500);
+		}
+		else if (ch[0] == 13)
+		{
+			NextLine(head,tail,ch);
+		}
+		else if (ch[0] == 12) // Ctrl+L is pressed
+		{
+			if (fin.is_open())
+			{
+				fin.getline(buff,100);
+			}
+			else
+				outtext("Not open");
+		}
+		else if (ch[0] == 19) // Ctrl+S is pressed
+		{
+			ofstream fout("help.txt");
+			for (int i=0;i!='\0';i++)
+			{
+				fout<<buff[i];
+			}
+		}
+		else if (ch[0] == 18)  // Ctrl+R is pressed
+		{
+			x=20;
+			outtextxy(x,y+15,"What do you want to find? ");
+			find[0]=getch();
+			addtolist(head,tail,find[0]);
+			outtextxy(x+30,y,find);
+			outtextxy(x,y+45,"What do you want to replace? ");
+			replace[0]=getch();
+			addtolist(head,tail,replace[0]);
+			outtextxy(x+60,y,replace);
+			FindAndReplace(find,replace,ch);
+			outtextxy(x,y+75,ch);
+		}
+		else if (ch[0] == 3)   // Ctrl+C is pressed
+		{
+			x=20;
+			char copy[]={'\0','\0'};
+			outtextxy(x,y+15,"What do you want to copy? ");
+			copy[0]=getch();
+			addtolist(head,tail,copy[0]);
+			outtextxy(x,y+30,copy);
+			CopyAndPaste(ch,head,tail);
+			outtextxy(x,y+45,ch);
+		}
+		if (isCursorKeyPressed(whichKey)==true)
+		{
+				if (whichKey == 1)
+				{
+					x=x-10;
+					setcolor(WHITE);
+					outtextxy(x,y,"_");
+					setcolor(BLACK);
+					outtextxy(x+10,y,"_");
+					setcolor(WHITE);
+					Sleep(1200);
+				}
+				if (whichKey == 3)
+				{
+					setcolor(WHITE);
+					x=x+10;
+					outtextxy(x,y,"_");
+					setcolor(BLACK);
+					outtextxy(x-10,y,"_");
+					setcolor(WHITE);
+					Sleep(1200);
+				}
+		}   
+	 return 0; 
+  } 
+}
