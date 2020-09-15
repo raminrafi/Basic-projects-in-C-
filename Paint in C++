@@ -1,0 +1,1592 @@
+#include <iostream>
+#include <conio.h>
+#include <cstdlib>
+#include <stdio.h>
+#include <time.h>
+#include <stdlib.h>
+#include "graphics.h"
+
+using namespace std;
+
+template <typename T> 
+class DynamicArray
+{
+    T * arr;
+    int cap,size;
+public:
+    DynamicArray()
+    {
+        arr=NULL;
+        size=cap=0;
+    }
+    DynamicArray(int capacity)
+    {
+        size=0;
+        cap = capacity;
+        arr = new T [cap];
+    }
+    DynamicArray(const DynamicArray & obj)
+    {
+        size=obj.size;
+        cap=obj.cap;
+        arr=new T[cap];
+        for (int i=0; i<size; i++)
+        {
+            arr[i]=obj.arr[i];
+        }
+    }
+    const DynamicArray & operator = (const DynamicArray & obj)
+    {
+        if (arr != NULL)
+        {
+            delete [] arr;
+        }
+        cap=obj.cap;
+        size=obj.size;
+        arr=new T[cap];
+        for (int i=0; i<size; i++)
+        {
+            arr[i]=obj.arr[i];
+        }
+        return *this;  // for cascading
+    }
+    T & operator [](int index)
+    {
+        return arr[index];
+    }
+    void push_back(const T & key)
+    {
+        if (cap==0)
+        {
+            arr=new T [1];
+            arr[0]=key;
+            cap=size=1;
+        }
+        else if (size < cap)
+        {
+            arr[size++] = key;
+        }
+        else
+        {
+            T * arr1;
+            cap=cap*2;
+            arr1=new T[cap];
+            for (int i=0;i<size;i++)
+            {
+                arr1[i]=arr[i];
+            }
+            arr1[size++]=key;
+            delete [] arr;
+            arr=arr1;
+        }
+    }
+    ~DynamicArray()
+    {
+        if (arr != NULL)
+            delete [] arr;
+    }
+};
+
+struct Point
+{
+	double x,y;
+};
+
+class Shape
+{
+protected:
+	Point * pts;
+	int color;
+	int noOfPoints;
+public:
+	Shape()
+	{
+		pts=nullptr;
+		color=noOfPoints=0;
+	}
+	Shape (const Shape & obj)
+	{
+		pts=obj.pts;
+		color=obj.color;
+		noOfPoints=obj.noOfPoints;
+	}
+	Shape(Point * ptss, int colorr, int noOfPts)
+	{
+		color=colorr;
+		noOfPts=noOfPoints;
+		ptss = new Point[noOfPts];
+	}
+	void draw();
+	virtual
+		~Shape()
+	{
+		if(pts != nullptr)
+			delete [] pts;
+	}
+};
+
+class openShape : public Shape
+{
+protected:
+	bool style;
+public:
+	openShape(Point * pts, int col, int noOfPts, bool sty) : Shape (pts,col,noOfPts)
+	{
+		style=sty;
+	}
+	openShape(openShape & obj)
+	{
+		style=obj.style;
+	}
+	openShape()
+	{
+		style=0;
+	}
+	openShape(bool sty)
+	{
+		style=sty;
+	}
+	void changeColor(int color);
+};
+
+class Line : public openShape
+{
+	int mx1,my1;
+	bool isPressed;
+public:
+	Line(bool sty) : openShape(sty)
+	{
+		mx1=my1=0;
+		isPressed=false;
+	}
+	Line()
+	{
+		mx1=my1=0;
+		isPressed=false;
+	}
+	void draw()
+	{	
+		while (true)
+		{
+			bool is = GetAsyncKeyState(VK_RBUTTON);
+			if(!isPressed && is)
+			{
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					mx1=cursorPosition1.x;
+					my1=cursorPosition1.y;
+					isPressed = true;
+					Sleep(500);	  
+			}
+			else if(isPressed && is)
+			{
+				POINT cursorPosition;
+				GetCursorPos(& cursorPosition);
+				line(cursorPosition.x,cursorPosition.y,mx1,my1);
+				mx1=my1=0;
+				isPressed = false;
+			}
+		}
+	}
+	void changeColor(int color)
+	{
+		color=getcolor();
+		setcolor(color);
+	}
+};
+
+class Curve : public openShape
+{
+	int mx1,my1;
+	bool isPressed;
+public:
+	Curve(bool style) : openShape(style)
+	{
+		mx1=my1=0;
+		isPressed=false;
+	}
+	Curve()
+	{
+		mx1=my1=0;
+		isPressed=false;
+	}
+	void draw()
+	{
+		while (true)
+		{
+			bool is = GetAsyncKeyState(VK_RBUTTON);
+			if(!isPressed && is)
+			{
+				POINT cursorPosition1;
+				GetCursorPos(& cursorPosition1);
+				mx1=cursorPosition1.x;
+				my1=cursorPosition1.y;
+				isPressed = true;
+				Sleep(500);	  
+			}
+			else if(isPressed && is)
+			{
+				POINT cursorPosition;
+				GetCursorPos(& cursorPosition);
+				arc(cursorPosition.x,cursorPosition.y,0,180,mx1%200);
+				mx1=my1=0;
+				isPressed = false;
+			}
+		}
+	}
+	void changeColor(int color)
+	{
+		color=getcolor();
+		setcolor(color);
+	}
+};
+
+class polygon : public Shape
+{
+protected:
+	int mx1,my1;
+	bool isPressed;
+	int fillColor;
+public:
+	polygon(Point * pts, int col, int noOfPts, int fillCol) : Shape (pts,col,noOfPts)
+	{
+		fillColor=fillCol;
+	}
+	polygon()
+	{
+		mx1=my1=0;
+		isPressed=false;
+		fillColor=0;
+	}
+	void draw()
+	{
+		while (true)
+			{
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					mx1=cursorPosition1.x;
+					my1=cursorPosition1.y;
+					isPressed = true;
+					Sleep(500);	  
+				}
+				else if(isPressed && is)
+				{
+					POINT cursorPosition;
+					GetCursorPos(& cursorPosition);
+					line(cursorPosition.x,cursorPosition.y,mx1,my1);
+					mx1=my1=0;
+					isPressed = false;
+				}
+			}
+	}
+	/*void fill(int color)
+	{
+	}*/
+};
+
+class Rectanglee : public polygon
+{
+	int mx1,my1;
+	bool isPressed;
+public:
+	Rectanglee(int fillCol) : polygon()
+	{
+		mx1=my1=0;
+		isPressed=false;
+		fillColor=fillCol;
+	}
+	Rectanglee()
+	{
+		mx1=my1=0;
+		isPressed=false;
+		fillColor=0;
+	}
+	void draw()
+	{
+		while (true)
+		{
+			bool is = GetAsyncKeyState(VK_RBUTTON);
+			if(!isPressed && is)
+			{
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					mx1=cursorPosition1.x;
+					my1=cursorPosition1.y;
+					isPressed = true;
+					Sleep(500);	  
+			}
+			else if(isPressed && is)
+			{
+				POINT cursorPosition;
+				GetCursorPos(& cursorPosition);
+				rectangle(mx1,my1,cursorPosition.x,cursorPosition.y);
+				mx1=my1=0;
+				isPressed = false;
+			}
+			}
+	}
+};
+
+class Circle : public Shape
+{
+	int radius;
+public:
+	Circle(Point *pts, int col, int noOfPts, int rad) : Shape(pts,col,noOfPts)
+	{
+		radius=rad;
+	}
+	Circle()
+	{
+		radius=0;
+	}
+	void draw()
+	{
+		while (true)
+		{
+			if(GetAsyncKeyState(WM_RBUTTONDOWN))
+			{
+				POINT cursorPosition;
+				GetCursorPos(& cursorPosition);
+				circle(cursorPosition.x,cursorPosition.y,rand()%125+1);
+				Sleep(500);
+			}
+		}
+	}
+	/*void fill(int color)
+	{
+	}*/
+};
+
+class Text : public Shape
+{
+	int mx1,my1;
+	bool isPressed;
+	char ch[200];
+public:
+	Text(Point * pts, int col, int noOfPts) : Shape(pts,col,noOfPts)
+	{
+		mx1=my1=0;
+		isPressed=false;
+		ch[0]=0;
+	}
+	Text()
+	{
+		mx1=my1=0;
+		isPressed=false;
+		ch[0]=0;
+	}
+	void draw()
+	{
+		POINT cursorPosition;
+		int x=20, y=50;
+		 while (true)  
+		 {
+			bool is = GetAsyncKeyState(VK_RBUTTON);
+			if(!isPressed && is)
+			{
+				isPressed = true;
+				GetCursorPos(& cursorPosition);
+				ch[0]=getch();
+				x=cursorPosition.x;
+				y=cursorPosition.y;
+				if ((ch[0] >= 'a' && ch[0] <= 'z') || (ch[0] >= 'A'&& ch[0] <= 'Z') || ch[0] == ' ' )
+				{
+					outtextxy(x,y,ch);
+					x=x+10;
+				}
+			}
+			else if(isPressed && is)
+			{
+				isPressed=false;
+				GetCursorPos(& cursorPosition);
+				ch[0]=getch();
+				x=cursorPosition.x;
+				y=cursorPosition.y;
+				if ((ch[0] >= 'a' && ch[0] <= 'z') || (ch[0] >= 'A'&& ch[0] <= 'Z') || ch[0] == ' ' )
+				{
+					outtextxy(x,y,ch);
+					x=x+10;
+				}
+			}
+			else if (ch[0] == 8)
+			{
+				x=x-10;
+				setcolor(WHITE);
+				outtextxy(cursorPosition.x,cursorPosition.y,"_");
+				setcolor(BLACK);
+				outtextxy(cursorPosition.x,cursorPosition.y,"_");
+				setcolor(WHITE);
+				Sleep(500);
+			}
+			else if (ch[0] == 13)
+			{
+				cursorPosition.y=cursorPosition.y+15;
+			}
+	}
+	}
+	void changeColor(int color)
+	{
+		color=getcolor();
+		setcolor(color);
+	}
+};
+
+void printColorPanel()
+{
+	int left, top, color;
+	left=100;
+	top=436;
+	color=getcolor();
+	setcolor(YELLOW);
+	rectangle(6,428,525,460);
+	setcolor(WHITE);
+	settextstyle(TRIPLEX_FONT,0,1.5);
+	outtextxy(20,432,"Colors");
+	for(int i=0; i<=15; i++)
+	{
+		setfillstyle(SOLID_FILL,i);
+		bar(left,top,left+16,top+16);
+		left+=26;
+	}
+	setcolor(color);
+}
+
+void drawShapePanel()
+{
+	int left, top, color;
+	left=530;
+	top=45;
+	settextstyle(TRIPLEX_FONT,0,1);
+	color=getcolor();
+	setcolor(YELLOW);
+	rectangle(525,40,660,250);
+	for(int i=0;i<=7;i++)
+	{
+		rectangle(left,top,left+125,top+25);
+		top+=25;
+	}
+	setcolor(WHITE);
+	outtextxy(565,50,"Line");
+	outtextxy(555,75,"Curve");
+	outtextxy(553,100,"Circle");
+	outtextxy(545,125,"Polygon");
+	outtextxy(536,150,"Rectangle");
+	outtextxy(565,175,"Text");
+	outtextxy(553,200,"Eraser");
+	outtextxy(535,225,"Fill Color");
+}
+
+int main()
+{
+	Line ln;
+	Circle cir;
+	polygon polyy;
+	Rectanglee rect;
+	Curve cur;
+	Text t;
+	int color;
+	bool isPressed=false;
+	initwindow(800,600,"Paintbrush");
+	printColorPanel();
+	drawShapePanel();
+	srand(time(NULL));
+	while (true)
+	{
+		bool is = GetAsyncKeyState(VK_RBUTTON);
+		if(!isPressed && is)
+		{
+			POINT cursorPosition;
+			GetCursorPos(& cursorPosition);
+			if ((cursorPosition.x >= 100 && cursorPosition.x <= 116) && (cursorPosition.y >= 436 && cursorPosition.y <= 452))
+			{
+				color=getcolor();
+				setcolor(BLUE);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else if ((cursorPosition.x >= 126 && cursorPosition.x <= 142) && (cursorPosition.y >= 436 && cursorPosition.y <= 452))
+			{
+				color=getcolor();
+				setcolor(GREEN);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else if ((cursorPosition.x >= 152 && cursorPosition.x <= 168) && (cursorPosition.y >= 436 && cursorPosition.y <=452))
+			{
+				color=getcolor();
+				setcolor(CYAN);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else if ((cursorPosition.x >= 178 && cursorPosition.x <= 184) && (cursorPosition.y >= 436 && cursorPosition.y <=452))
+			{
+				color=getcolor();
+				setcolor(RED);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else if ((cursorPosition.x >= 194 && cursorPosition.x <= 210) && (cursorPosition.y >= 436 && cursorPosition.y <=452))
+			{
+				color=getcolor();
+				setcolor(MAGENTA);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else if ((cursorPosition.x >= 220 && cursorPosition.x <= 236) && (cursorPosition.y >= 436 && cursorPosition.y <=452))
+			{
+				color=getcolor();
+				setcolor(BROWN);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else if ((cursorPosition.x >= 246 && cursorPosition.x <= 262) && (cursorPosition.y >= 436 && cursorPosition.y <=452))
+			{
+				color=getcolor();
+				setcolor(LIGHTGRAY);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else if ((cursorPosition.x >= 272  && cursorPosition.x <= 288) && (cursorPosition.y >= 436 && cursorPosition.y <=452))
+			{
+				color=getcolor();
+				setcolor(DARKGRAY);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else if ((cursorPosition.x >= 298 && cursorPosition.x <= 314) && (cursorPosition.y >= 436 && cursorPosition.y <=452))
+			{
+				color=getcolor();
+				setcolor(LIGHTBLUE);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else if ((cursorPosition.x >= 324 && cursorPosition.x <= 340) && (cursorPosition.y >= 436 && cursorPosition.y <=452))
+			{
+				color=getcolor();
+				setcolor(LIGHTGREEN);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else if ((cursorPosition.x >= 350 && cursorPosition.x <= 366) && (cursorPosition.y >= 436 && cursorPosition.y <=452))
+			{
+				color=getcolor();
+				setcolor(LIGHTCYAN);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else if ((cursorPosition.x >= 376 && cursorPosition.x <= 392) && (cursorPosition.y >= 436 && cursorPosition.y <=452))
+			{
+				color=getcolor();
+				setcolor(LIGHTRED);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else if ((cursorPosition.x >= 402 && cursorPosition.x <= 418) && (cursorPosition.y >= 436 && cursorPosition.y <=452))
+			{
+				color=getcolor();
+				setcolor(LIGHTMAGENTA);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else if ((cursorPosition.x >= 428 && cursorPosition.x <= 444) && (cursorPosition.y >= 436 && cursorPosition.y <=452))
+			{
+				color=getcolor();
+				setcolor(YELLOW);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else
+			{
+				color=getcolor();
+				setcolor(WHITE);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+		else if(isPressed && is)
+		{
+			POINT cursorPosition;
+			GetCursorPos(& cursorPosition);
+			isPressed = false;
+			if ((cursorPosition.x >= 100 && cursorPosition.x <= 116) && (cursorPosition.y >= 436 && cursorPosition.y <= 452))
+			{
+				color=getcolor();
+				setcolor(BLUE);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else if ((cursorPosition.x >= 126 && cursorPosition.x <= 142) && (cursorPosition.y >= 436 && cursorPosition.y <= 452))
+			{
+				color=getcolor();
+				setcolor(GREEN);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else if ((cursorPosition.x >= 152 && cursorPosition.x <= 168) && (cursorPosition.y >= 436 && cursorPosition.y <=452))
+			{
+				color=getcolor();
+				setcolor(CYAN);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else if ((cursorPosition.x >= 178 && cursorPosition.x <= 184) && (cursorPosition.y >= 436 && cursorPosition.y <=452))
+			{
+				color=getcolor();
+				setcolor(RED);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else if ((cursorPosition.x >= 194 && cursorPosition.x <= 210) && (cursorPosition.y >= 436 && cursorPosition.y <=452))
+			{
+				color=getcolor();
+				setcolor(MAGENTA);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else if ((cursorPosition.x >= 220 && cursorPosition.x <= 236) && (cursorPosition.y >= 436 && cursorPosition.y <=452))
+			{
+				color=getcolor();
+				setcolor(BROWN);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else if ((cursorPosition.x >= 246 && cursorPosition.x <= 262) && (cursorPosition.y >= 436 && cursorPosition.y <=452))
+			{
+				color=getcolor();
+				setcolor(LIGHTGRAY);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else if ((cursorPosition.x >= 272  && cursorPosition.x <= 288) && (cursorPosition.y >= 436 && cursorPosition.y <=452))
+			{
+				color=getcolor();
+				setcolor(DARKGRAY);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else if ((cursorPosition.x >= 298 && cursorPosition.x <= 314) && (cursorPosition.y >= 436 && cursorPosition.y <=452))
+			{
+				color=getcolor();
+				setcolor(LIGHTBLUE);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else if ((cursorPosition.x >= 324 && cursorPosition.x <= 340) && (cursorPosition.y >= 436 && cursorPosition.y <=452))
+			{
+				color=getcolor();
+				setcolor(LIGHTGREEN);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else if ((cursorPosition.x >= 350 && cursorPosition.x <= 366) && (cursorPosition.y >= 436 && cursorPosition.y <=452))
+			{
+				color=getcolor();
+				setcolor(LIGHTCYAN);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else if ((cursorPosition.x >= 376 && cursorPosition.x <= 392) && (cursorPosition.y >= 436 && cursorPosition.y <=452))
+			{
+				color=getcolor();
+				setcolor(LIGHTRED);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else if ((cursorPosition.x >= 402 && cursorPosition.x <= 418) && (cursorPosition.y >= 436 && cursorPosition.y <=452))
+			{
+				color=getcolor();
+				setcolor(LIGHTMAGENTA);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else if ((cursorPosition.x >= 428 && cursorPosition.x <= 444) && (cursorPosition.y >= 436 && cursorPosition.y <=452))
+			{
+				color=getcolor();
+				setcolor(YELLOW);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+			else
+			{
+				color=getcolor();
+				setcolor(WHITE);
+				bool is = GetAsyncKeyState(VK_RBUTTON);
+				if(!isPressed && is)
+				{
+					isPressed = true;
+					POINT cursorPosition1;
+					GetCursorPos(& cursorPosition1);
+					if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 46 && cursorPosition1.y <=60))
+					{
+						ln.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 61 && cursorPosition1.y <= 85))
+					{
+						cur.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 86 && cursorPosition1.y <= 110))
+					{
+						cir.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 111 && cursorPosition1.y <= 135))
+					{
+						polyy.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 136 && cursorPosition1.y <= 160))
+					{
+						rect.draw();
+					}
+					else if((cursorPosition1.x >= 540 && cursorPosition1.x <= 660) && (cursorPosition1.y >= 161 && cursorPosition1.y <= 185))
+					{
+						t.draw();
+					}
+				}
+			}
+		}
+	}
+}
+}
+system("pause");
+}

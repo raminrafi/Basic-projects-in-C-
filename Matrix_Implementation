@@ -1,0 +1,426 @@
+#include <iostream>
+#include <fstream>
+#include <cstdlib>
+#include <cstring>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <conio.h>
+
+using namespace std;
+
+class Matrix
+{
+private:
+    int **mat;
+    int m,n;
+public:
+    Matrix()
+    {
+        cout<<endl<<"Default constructor called. ";
+        mat=NULL;
+        m=n=0;
+        mat = new int *[m];
+        for (int i=0; i<m ; i++)
+        {
+            mat[i] = new int [n];
+        }
+    }
+    Matrix(const char *istr,int i)
+    {
+        cout<<"Parameterized constructor called. "<<endl;
+        ifstream fin1("help1.txt");
+        if (i == 1)
+        {
+            if (fin1.is_open())
+            {
+                cout<<"Number of rows for matrix1 = ";
+                fin1>>m;
+                cout<<m<<endl;
+                fin1>>n;
+                cout<<"Number of columns for matrix1 = ";
+                cout<<n<<endl;
+                cout<<"Reading the matrix. "<<endl;
+                mat = new int *[m];
+                for (int i=0; i<m ; i++)
+                {
+                    mat[i] = new int [n];
+                }
+                cout<<"Matrix1 is: ";
+                for (int i=0; i<m; i++)
+                {
+                    cout<<endl;
+                    for (int j=0; j<n; j++)
+                    {
+                        fin1>>mat[i][j];
+                        cout<<mat[i][j]<<" ";
+                    }
+                }
+                cout<<endl;
+                fin1.close();
+            }
+            else
+                cout<<"Error in file. "<<endl;
+        }
+        else if (i == 2)
+        {
+            ifstream fin2("help2.txt");
+            if(fin2.is_open())
+            {
+                cout<<"Number of rows for matrix2 = ";
+                fin2>>m;
+                cout<<m<<endl;
+                fin2>>n;
+                cout<<"Number of columns for matrix2 = ";
+                cout<<n<<endl;
+                cout<<"Reading the matrix. "<<endl;
+                mat = new int *[m];
+                for (int i=0; i<m ; i++)
+                {
+                    mat[i] = new int [n];
+                }
+                cout<<"Matrix2 is: ";
+                for (int i=0; i<m; i++)
+                {
+                    cout<<endl;
+                    for (int j=0; j<n; j++)
+                    {
+                        fin2>>mat[i][j];
+                        cout<<mat[i][j]<<" ";
+                    }
+                }
+                cout<<endl;
+                fin2.close();
+            }
+            else
+                cout<<"Error in file. "<<endl;
+        }
+    }
+    Matrix(int m, int n, int Value)
+    {
+        cout<<"Mat3 is: ";
+        mat = new int *[m];
+        for (int i=0; i<m ; i++)
+        {
+            mat[i] = new int [n];
+        }
+        for (int i=0; i<m; i++)
+        {
+            for (int j=0; j<n; j++)
+            {
+                mat[i][j]=Value;
+            }
+        }
+        for (int i=0; i<m; i++)
+        {
+            cout<<endl;
+            for (int j=0; j<n; j++)
+            {
+                cout<<mat[i][j]<<" ";
+            }
+        }
+        cout<<endl;
+    }
+    Matrix (Matrix & obj)
+    {
+        cout<<"Copy constructor called. "<<endl;
+        m=obj.m;
+        n=obj.n;
+        mat=new int * [m];
+        for (int i=0; i<m; i++)
+        {
+            mat[i]= new int[n];
+        }
+        for (int i=0; i<m; i++)
+        {
+            for (int j=0; j<n; j++)
+            {
+                mat[i][j]=obj.mat[i][j];
+            }
+        }
+    }
+    Matrix(int m, int n)
+    {
+        mat = new int * [m];
+        for (int i = 0; i < m; i++)
+            mat[i] = new int[n];
+    }
+    int rows()
+    {
+        int rows=1;
+        for (int i=0; i<m; i++)
+        {
+            rows++;
+        }
+        return rows;
+    }
+    int cols()
+    {
+        int cols=1;
+        for (int i=0; i<cols; i++)
+        {
+            cols++;
+        }
+        return cols;
+    }
+    bool operator != (Matrix & obj)
+    {
+        if (mat != NULL)
+        {
+            if (m == obj.m && n == obj.n)
+            {
+                for (int i=0; i<m; i++)
+                {
+                    for (int j=0; j<n; j++)
+                    {
+                        if (mat[i][j]!=obj.mat[i][j])
+                            return true;
+                        else
+                            return false;
+                    }
+                }
+            }
+			else
+				return true;
+        }
+    }
+    Matrix & operator + (Matrix & obj)     // mat3.operator + (mat 1)
+    {
+        if (true)
+        {
+            for (int i=0; i<m; i++)
+            {
+                for (int j=0; j<n  ; j++)
+                {
+                    mat[i][j]=mat[i][j]+obj.mat[i][j];
+                }
+            }
+        }
+        else
+         {
+             cout<<"Addition is not possible :( "<<endl;
+         }
+		return *this;
+    }
+    Matrix & operator + (const int numToAdd)
+    {
+        for (int i=0; i<m; i++)
+        {
+            for (int j=0; j<n; j++)
+            {
+                mat[i][j]=mat[i][j]+numToAdd;
+            }
+        }
+		return *this;
+    }
+    Matrix & operator * (Matrix & obj)
+    {
+        if (n == obj.m || (n == obj.n && m == obj.m))
+        {
+            for (int i=0; i<n; i++)
+            {
+                for (int j=0; j<m; j++)
+                {
+                    obj.mat[i][j]=0;
+                    for (int k=0; k < obj.m; k++)
+                    {
+                        mat[i][j] = (mat[i][j]+ (mat[i][k] * mat[k][j]));
+                        mat[i][j] = mat[i][j]%100;
+                    }
+                }
+            }
+        }
+        else
+            cout<<"Matrix Multiplication is not possible. "<<endl;
+		return *this;
+    }
+    Matrix & operator * (const int numToMultiply)
+    {
+        for (int i=0; i<m; i++)
+        {
+            for (int j=0; j<n; j++)
+            {
+                mat[i][j]=mat[i][j]*numToMultiply;
+            }
+        }
+		return *this;
+    }
+    Matrix & operator ++()
+    {
+        for (int i=0; i<m; i++)
+        {
+            for (int j=0; j<n; j++)
+            {
+                mat[i][j]=mat[i][j]+1;
+            }
+        }
+    }
+    Matrix & operator << (ostream & out)
+    {
+        for (int i=0; i<m; i++)
+        {
+            for (int j=0; j<n; j++)
+            {
+                out<<mat[i][j];
+            }
+        }
+        return * this;
+    }
+    Matrix & operator *= (Matrix & obj)
+    {
+        if ((n==obj.n || m==obj.m) || n==obj.m)
+        {
+            for (int i=0; i<n; i++)
+            {
+                for (int j=0; j<m; j++)
+                {
+                    for (int k=0; k < obj.m; k++)
+                    {
+                        mat[i][j] = (mat[i][j]+ (mat[i][k] * mat[k][j]));
+                    }
+                }
+            }
+        }
+        return *this;
+
+    }
+    int * operator [](const int &index) const  // overloading operator []
+    {
+      return mat[index];
+    }
+    Matrix & identity(int rows, int cols)
+    {
+        m=rows;
+        n=cols;
+        mat=new int *[rows];
+        for(int j=0; j<cols; j++)
+        {
+            mat[j]=new int [cols];
+        }
+        for (int i = 0; i < rows; i++)
+        {
+            for (int j = 0; j < cols; j++)
+            {
+                if (i == j)
+                {
+                    mat[i][j]=1;
+                }
+                else
+                {
+                    mat[i][j]=0;
+                }
+            }
+        }
+    }
+    Matrix & transpose()
+    {
+        for (int i=0; i<m; i++)
+        {
+            for (int j=0; j<n; j++)
+            {
+                mat[i][j]=mat[j][i];
+            }
+        }
+        return *this;
+    }
+    static Matrix & Random (int rows, int cols, int value)
+    {
+        Matrix temp;
+        temp.m=rows;
+        temp.n=cols;
+        temp.mat=new int * [rows];
+        for(int i=0; i<rows; i++)
+        {
+            temp.mat[i]=new int [cols];
+        }
+        for (int i=0; i<rows; i++)
+        {
+            cout<<endl;
+            for (int j=0; j<cols; j++)
+            {
+                temp.mat[i][j]=rand()%value;
+                cout<<temp.mat[i][j]<<" ";
+            }
+        }
+    }
+    Matrix & random()
+    {
+        for(int i=0;i<m;i++)
+        {
+            for(int j=0;j<n;j++)
+            {
+                mat[i][j]=rand()%100+1;
+            }
+        }
+        return *this;
+    }
+    ~Matrix()
+    {
+        cout<<endl<<"Destructor called. "<<endl;
+        if (mat != NULL)
+        {
+            for (int i=0; i<n; i++)
+            {
+                delete [] mat[i];
+            }
+            delete [] mat;
+        }
+    }
+    friend ostream & operator << (ostream & , Matrix &);
+};
+
+ostream & operator << (ostream & out, Matrix & obj)
+{
+    for (int i=0; i<obj.m; i++)
+    {
+        out<<endl;
+        for (int j=0; j<obj.n; j++)
+        {
+            out<<obj.mat[i][j]<<" ";
+        }
+    }
+    return out;
+}
+
+int main()
+{
+    Matrix mat1("help1.txt",1);
+    Matrix mat2("help2.txt",2);
+    Matrix mat3(4,3,0);
+    Matrix mat4;
+    if (mat1 != mat3)
+    {
+        mat3=mat1+mat3;
+    }
+    cout<<endl<<"The result of addition is: ";
+    cout<<mat3<<endl;
+    mat4 = mat3*mat2;
+    cout<<"Result of Multiplication(mat4): ";
+    cout<<mat4<<endl;
+    cout<<"Updated mat3:";
+    cout<<mat3<<endl;
+    Matrix mat5 =(((mat3)*3)+2);
+    cout<<"Result of mat5=(3*(mat3++))+2: "<<mat5;
+    for(int i=0; i<4; i++)
+    {
+        for(int j=0; j<3; j++)
+        {
+            if(mat5[i][j]%2!=0)
+            {
+                mat5[i][j]=0;
+            }
+        }
+    }
+    cout<<endl<<"mat5 after odds are zeroed: "<<mat5;
+    Matrix mat6;
+    mat6.identity(5,5);
+    cout<<endl<<"mat6 is the identity matrix: "<<mat6<<endl;;
+    Matrix mat7=mat6.transpose();
+    cout<<"mat7 is the transpose of mat6: "<<mat7<<endl;
+    cout<<"mat8 is a 5x5 random matrix:";
+    Matrix mat8 = Matrix::Random(5,5,100);
+    mat7*=mat8;
+    cout<<"Result of mat7*=(++mat8):"<<mat7<<endl;
+    cout<<"Updated mat8:"<<mat4;
+    _getch();
+}
